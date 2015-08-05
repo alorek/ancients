@@ -1,58 +1,81 @@
 'use strict';
 
 angular.module('ancients')
-  .controller('MainCtrl', function ($scope) {
-    $scope.awesomeThings = [
-      {
-        'title': 'AngularJS',
-        'url': 'https://angularjs.org/',
-        'description': 'HTML enhanced for web apps!',
-        'logo': 'angular.png'
-      },
-      {
-        'title': 'BrowserSync',
-        'url': 'http://browsersync.io/',
-        'description': 'Time-saving synchronised browser testing.',
-        'logo': 'browsersync.png'
-      },
-      {
-        'title': 'GulpJS',
-        'url': 'http://gulpjs.com/',
-        'description': 'The streaming build system.',
-        'logo': 'gulp.png'
-      },
-      {
-        'title': 'Jasmine',
-        'url': 'http://jasmine.github.io/',
-        'description': 'Behavior-Driven JavaScript.',
-        'logo': 'jasmine.png'
-      },
-      {
-        'title': 'Karma',
-        'url': 'http://karma-runner.github.io/',
-        'description': 'Spectacular Test Runner for JavaScript.',
-        'logo': 'karma.png'
-      },
-      {
-        'title': 'Protractor',
-        'url': 'https://github.com/angular/protractor',
-        'description': 'End to end test framework for AngularJS applications built on top of WebDriverJS.',
-        'logo': 'protractor.png'
-      },
-      {
-        'title': 'Bootstrap',
-        'url': 'http://getbootstrap.com/',
-        'description': 'Bootstrap is the most popular HTML, CSS, and JS framework for developing responsive, mobile first projects on the web.',
-        'logo': 'bootstrap.png'
-      },
-      {
-        'title': 'Sass (Ruby)',
-        'url': 'http://sass-lang.com/',
-        'description': 'Original Syntactically Awesome StyleSheets implemented in Ruby',
-        'logo': 'ruby-sass.png'
+  .controller('MainCtrl', function ($scope, $rootScope, $http) {
+    $scope.query = '';
+    var url = 'https://athena-7.herokuapp.com/ancients.json';
+
+    $scope.fetch = function(){
+      $http.get(url, {cache:true}).
+        success(function(data, status, headers, config) {
+          // NOTE: We want to make sure we have something to display
+          if(data.length ===0){
+            $scope.empty = true;
+            return;
+          }
+          //NOTE: Parsing results into uppercase for the name and superpower
+          $scope.empty = false;
+          $.each(data, function(index, ancient){
+            ancient.name = ancient.name.toUpperCase();
+            ancient.superpower = ancient.superpower.toUpperCase();
+          });
+          $scope.ancients = data;
+        }).
+        error(function(data, status, headers, config) {
+          // NOTE: We could have some errors handling here
+        });
+    };
+
+    var pendingCall;
+    //NOTE: We search automaticaly on change of input value
+    $scope.change = function(){
+      if($scope.query === ''){
+        $scope.fetch();
+        return;
       }
-    ];
-    angular.forEach($scope.awesomeThings, function(awesomeThing) {
-      awesomeThing.rank = Math.random();
-    });
+      //NOTE: We don't want to make a request with invalid query
+      //      If the search query doesn't match the RegEx angular doesn't set the model so checking the input value instead
+        if(!/^[a-zA-Z\s]+$/.test($('#search-query').val()))
+        return;
+      
+      //NOTE: We want to wait until the user stops typing before making a request, waiting 800ms
+      if(pendingCall) 
+        clearTimeout(pendingCall);
+      pendingCall = setTimeout($scope.search(), 800);
+    };
+
+    $scope.search = function(){
+      $http.get(url + '?search=' + 
+        $scope.query.charAt(0).toUpperCase() + $scope.query.slice(1),
+        {cache:true})
+      .success(function(data, status, headers, config){
+        // NOTE: We want to make sure we have something to display
+        if(data.ancients.length === 0){
+          $scope.empty = true;
+          $scope.ancients = [];
+          return;
+        }
+        $scope.empty = false;
+        $.each(data.ancients, function(index, ancient){
+          ancient.name = ancient.name.toUpperCase();
+          ancient.superpower = ancient.superpower.toUpperCase();
+        });
+        $scope.ancients = data.ancients;
+      });
+    };
+
+
+    $scope.showError = function(){
+      $http.get(url + '?error=true')
+      .error(function(data, status, headers, config){
+        $scope.error = data.error;
+       
+      });
+    };
+
+    $scope.fetch();
+    //NOTE: Not sure when or where the error should be displayed so just getting it straight away
+    $scope.showError();
   });
+
+

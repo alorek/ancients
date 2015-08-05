@@ -1,33 +1,24 @@
+<div ng-include="'app/components/navbar/navbar.html'"></div>
 <div class="container">
-
-  <div ng-include="'app/components/navbar/navbar.html'"></div>
-
-  <div class="jumbotron text-center">
-    <h1>'Allo, 'Allo!</h1>
-    <p class="lead">
-      <img src="assets/images/yeoman.png" alt="I'm Yeoman"><br>
-      Always a pleasure scaffolding your apps.
-    </p>
-    <p><a class="btn btn-lg btn-success" ng-href="#">Splendid!</a></p>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-6 col-md-4" ng-repeat="awesomeThing in awesomeThings | orderBy:'rank'">
-      <div class="thumbnail">
-        <img class="pull-right" ng-src="assets/images/{{awesomeThing.logo}}" alt="{{awesomeThing.title}}">
-        <div class="caption">
-          <h3>{{awesomeThing.title}}</h3>
-          <p>{{awesomeThing.description}}</p>
-          <p><a ng-href="{{awesomeThing.url}}">{{awesomeThing.url}}</a></p>
-        </div>
-      </div>
+  <form name="searchForm">
+    <div class="input-group">
+      <input id="search-query" type="text" class="form-control" name="search" ng-model="query" ng-pattern="/^[a-zA-Z\s]+$/" ng-change="change()" >
+      <span class="input-group-addon">
+        <span class="glyphicon glyphicon-search"></span>
+      </span>
     </div>
-  </div>
+    <span ng-show="searchForm.search.$error.pattern" class="error">Incorrect input.</span>
+  </form>
 
-  <hr>
-
-  <div class="footer">
-    <p>With ♥ from <a href="https://twitter.com/Swiip">@Swiip</a></p>
-  </div>
-
+  <ul class="ancients">
+    <li ng-repeat="ancient in ancients">
+      <div>
+          <p class="name">{{ancient.name}}</p>
+          <p class="superpower">{{ancient.superpower}}</p>
+          <p class="era">End of an era: {{ancient.end_of_an_era | date:'dd/MM/yyyy'}}</p>
+      </div>
+    </li>
+  </ul>
+  <div ng-show="empty">No results found</div>
+  <p class="error">{{error}}</p>
 </div>
